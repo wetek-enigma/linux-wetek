@@ -51,6 +51,51 @@ static struct dummy_codec_platform_data *dummy_codec_pdata = NULL;
 struct device *dummy_codec_dev = NULL;
 struct pinctrl *p = NULL;
 #endif
+
+int output_volume = 100;
+struct mutex m_volume;
+
+static int pcm_pb_volume_info(struct snd_kcontrol *kcontrol,
+                              struct snd_ctl_elem_info *uinfo)
+{
+    uinfo->type = SNDRV_CTL_ELEM_TYPE_INTEGER;
+    uinfo->count = 1;
+    uinfo->value.integer.min = 0;
+    uinfo->value.integer.max = 100;
+    uinfo->value.integer.step = 1;
+    return 0;
+}
+
+static int pcm_pb_volume_get(struct snd_kcontrol *kcontrol,
+                             struct snd_ctl_elem_value *uvalue)
+{
+	mutex_lock(&m_volume);
+    uvalue->value.integer.value[0] = output_volume & 0xff;
+	mutex_unlock(&m_volume);
+	
+    return 0;
+}
+
+static int pcm_pb_volume_put(struct snd_kcontrol *kcontrol,
+                             struct snd_ctl_elem_value *uvalue)
+{
+	mutex_lock(&m_volume);
+    output_volume = uvalue->value.integer.value[0]; 
+	mutex_unlock(&m_volume);
+    return 0;
+}
+struct snd_kcontrol_new pcm_control_pb_vol = {
+    .iface = SNDRV_CTL_ELEM_IFACE_MIXER,
+    .name = "Master Playback Volume",
+    .index = 0x00,
+    .info = pcm_pb_volume_info,
+    .get = pcm_pb_volume_get,
+    .put = pcm_pb_volume_put,   
+};
+
+
+
+
 static void dummy_codec_dev_init(void)
 {
     if (dummy_codec_snd_pdata->device_init) {
@@ -268,7 +313,10 @@ static int dummy_codec_audio_probe(struct platform_device *pdev)
         printk(KERN_ERR "ASoC: Platform device allocation failed\n");
         goto err_device_add;
     }
-
+	
+	mutex_init(&m_volume);
+	snd_ctl_add(snd_soc_dummy_codec.snd_card, snd_ctl_new1(&pcm_control_pb_vol, NULL));
+	 
 
     dummy_codec_dev_init();
 

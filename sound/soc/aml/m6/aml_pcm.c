@@ -1089,6 +1089,9 @@ static int aml_pcm_close(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+extern int output_volume; //Volume control
+extern struct mutex m_volume; //Volume mutext
+#define VOL_CTL(s) ((unsigned int)(((signed short)(s))*(vol)) >> 15) //Volume scaling from 0~100
 
 static int aml_pcm_copy_playback(struct snd_pcm_runtime *runtime, int channel,
 		    snd_pcm_uframes_t pos,
@@ -1101,6 +1104,9 @@ static int aml_pcm_copy_playback(struct snd_pcm_runtime *runtime, int channel,
     char *hwbuf = runtime->dma_area + frames_to_bytes(runtime, pos);
     struct aml_runtime_data *prtd = runtime->private_data;
     void *ubuf = prtd->buf;
+	unsigned int vol;
+	
+	
 	aml_i2s_alsa_write_addr = frames_to_bytes(runtime, pos);
     n = frames_to_bytes(runtime, count);
     if(aml_i2s_playback_enable == 0)
@@ -1109,6 +1115,7 @@ static int aml_pcm_copy_playback(struct snd_pcm_runtime *runtime, int channel,
 		printk("trigger underun \n");
 		return -EFAULT;
     }
+	
     res = copy_from_user(ubuf, buf, n);
     if (res) return -EFAULT;
     if(access_ok(VERIFY_READ, buf, frames_to_bytes(runtime, count))){
@@ -1122,10 +1129,15 @@ static int aml_pcm_copy_playback(struct snd_pcm_runtime *runtime, int channel,
 		if (pos % align) {
 		    printk("audio data unligned: pos=%d, n=%d, align=%d\n", (int)pos, n, align);
 		}
+		
+		mutex_lock(&m_volume);
+		vol = (output_volume * 0x8000) / 100;
+		mutex_unlock(&m_volume);
+		
 		for (j = 0; j < n; j += 64) {
 		    for (i = 0; i < 16; i++) {
-	          *left++ = (*tfrom++) ;
-	          *right++ = (*tfrom++);
+	          *left++ = (int16_t)(VOL_CTL(*tfrom++)) ;
+	          *right++ = (int16_t)(VOL_CTL(*tfrom++)) ;
 		    }
 		    left += 16;
 		    right += 16;
