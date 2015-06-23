@@ -896,7 +896,7 @@ static int mac_pmt_enable(unsigned int enable)
  * @return
  */
 /* --------------------------------------------------------------------------*/
-//#undef CONFIG_AML_NAND_KEY
+#undef CONFIG_AML_NAND_KEY
 #ifdef CONFIG_AML_NAND_KEY
 extern int get_aml_key_kernel(const char* key_name, unsigned char* data, int ascii_flag);
 extern int extenal_api_key_set_version(char *devvesion);
