@@ -266,7 +266,7 @@ static irqreturn_t audiodsp_mailbox_irq(int irq, void *data)
 		}
 	}
 
-	return 0;
+	return IRQ_HANDLED;
 }
 static void audiodsp_mailbox_work_queue(struct work_struct*work)
 {

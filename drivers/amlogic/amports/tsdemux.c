@@ -54,6 +54,8 @@ static u32 curr_vid_id = 0xffff;
 static u32 curr_aud_id = 0xffff;
 static u32 curr_sub_id = 0xffff;
 static u32 curr_pcr_id = 0xffff;
+u32 pcr_pid = 0;
+u32 stb_source = 0;
 
 static DECLARE_WAIT_QUEUE_HEAD(wq);
 static u32 fetch_done;
@@ -506,7 +508,7 @@ s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc)
 
     /* set PID filter */
     printk("tsdemux video_pid = 0x%x, audio_pid = 0x%x, sub_pid = 0x%x, pcrid = 0x%x\n",
-           vid, aid, sid, pcrid);
+           vid, aid, sid, pcr_pid);
 
 #ifndef ENABLE_DEMUX_DRIVER
     WRITE_MPEG_REG(FM_WR_DATA,
@@ -665,9 +667,9 @@ s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc)
         tsdemux_set_sid(sid);
     }
 
-	curr_pcr_id = pcrid;
-    if ((pcrid < 0x1FFF) && (pcrid != vid) && (pcrid != aid) && (pcrid != sid)) {
-	tsdemux_set_pcrid(pcrid);
+	curr_pcr_id = pcr_pid;
+    if ((pcr_pid < 0x1FFF) && (pcr_pid != vid) && (pcr_pid != aid) && (pcr_pid != sid)) {
+	tsdemux_set_pcrid(pcr_pid);
 	}
 #endif
 
@@ -814,9 +816,38 @@ static ssize_t show_discontinue_counter(struct class *class, struct class_attrib
 {
     return sprintf(buf, "%d\n", discontinued_counter);
 }
+static ssize_t store_pcrpid(struct class *class, struct class_attribute *attr, const char *buf, size_t size)
+{
+    ssize_t ret;
+
+    ret = sscanf(buf, "%u", &pcr_pid);        
+    return size;
+}
+static ssize_t show_pcrpid(struct class *class, struct class_attribute *attr, char *buf)
+{
+    ssize_t size=0;
+	size += sprintf(buf, "%u\n", pcr_pid);	
+    return size;
+}
+static ssize_t store_stbsource(struct class *class, struct class_attribute *attr, const char *buf, size_t size)
+{
+    ssize_t ret;
+	
+    ret = sscanf(buf, "%u", &stb_source); 
+	tsdemux_set_demux(stb_source);
+    return size;
+}
+static ssize_t show_stbsource(struct class *class, struct class_attribute *attr, char *buf)
+{
+    ssize_t size=0;
+	size += sprintf(buf, "%u\n", stb_source);	
+    return size;
+}
 
 static struct class_attribute tsdemux_class_attrs[] = {
     __ATTR(discontinue_counter,  S_IRUGO, show_discontinue_counter, NULL),
+	__ATTR(pcr_pid,  S_IRUGO | S_IWUSR | S_IWGRP, show_pcrpid, store_pcrpid),
+	__ATTR(stb_source,  S_IRUGO | S_IWUSR | S_IWGRP, show_stbsource, store_stbsource),
     __ATTR_NULL
 };
 
