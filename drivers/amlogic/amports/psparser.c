@@ -891,11 +891,15 @@ s32 psparser_init(u32 vid, u32 aid, u32 sid)
     WRITE_MPEG_REG(RESET1_REGISTER, RESET_PARSER);
 
     /* TS data path */
+		/* Ignore FEC control for WetekPlay */
+#ifndef CONFIG_WETEK
 #ifndef CONFIG_AM_DVB
     WRITE_MPEG_REG(FEC_INPUT_CONTROL, 0);
 #else
     tsdemux_set_reset_flag();
 #endif
+#endif
+
     CLEAR_MPEG_REG_MASK(TS_HIU_CTL, 1 << USE_HI_BSF_INTERFACE);
     CLEAR_MPEG_REG_MASK(TS_HIU_CTL_2, 1 << USE_HI_BSF_INTERFACE);
     CLEAR_MPEG_REG_MASK(TS_HIU_CTL_3, 1 << USE_HI_BSF_INTERFACE);
