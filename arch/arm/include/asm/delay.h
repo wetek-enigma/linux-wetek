@@ -49,7 +49,7 @@ extern void __bad_udelay(void);
  * a constant)
  */
 #define __udelay(n)		arm_delay_ops.udelay(n)
-#define __const_udelay(n)	arm_delay_ops.const_udelay(n)
+//#define __const_udelay(n)	arm_delay_ops.const_udelay(n)
 
 #define udelay(n)							\
 	(__builtin_constant_p(n) ?					\
@@ -61,6 +61,8 @@ extern void __bad_udelay(void);
 extern void __loop_delay(unsigned long loops);
 extern void __loop_udelay(unsigned long usecs);
 extern void __loop_const_udelay(unsigned long);
+extern void __const_udelay(unsigned long);
+
 
 /* Delay-loop timer registration. */
 #define ARCH_HAS_READ_CURRENT_TIMER

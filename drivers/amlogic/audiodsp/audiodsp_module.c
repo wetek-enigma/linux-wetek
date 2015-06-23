@@ -76,7 +76,7 @@ unsigned dsp_debug_flag;
 
 extern struct audio_info * get_audio_info(void);
 extern void	aml_alsa_hw_reprepare(void);
-extern void dsp_get_debug_interface(int flag);
+extern void dsp_get_debug_interface(void);
 void audiodsp_moniter(unsigned long);
 static struct audiodsp_priv *audiodsp_p;
 #define  DSP_DRIVER_NAME	"audiodsp"
@@ -148,13 +148,6 @@ int audiodsp_start(void)
 	dsp_stop(priv);
 	ret=dsp_start(priv,pmcode);
 	if(ret==0){
-#ifndef CONFIG_MESON_TRUSTZONE
-#if MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6
-		if(priv->stream_fmt == MCODEC_FMT_DTS || priv->stream_fmt == MCODEC_FMT_AC3 || priv->stream_fmt == MCODEC_FMT_EAC3){
-			dsp_get_debug_interface(1);
-		}
-#endif
-#endif
 		start_audiodsp_monitor(priv);
 
 #ifdef CONFIG_AM_VDEC_REAL
@@ -313,12 +306,6 @@ static long audiodsp_ioctl(struct file *file, unsigned int cmd,
 				}
 			else
 				{
-#ifndef CONFIG_MESON_TRUSTZONE
-#if MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6
-                               if(priv->stream_fmt == MCODEC_FMT_DTS || priv->stream_fmt == MCODEC_FMT_AC3 || priv->stream_fmt == MCODEC_FMT_EAC3)
-                                       dsp_get_debug_interface(0);
-#endif
-#endif
 				ret=audiodsp_start();
 				}
 			break;
@@ -1147,7 +1134,7 @@ int audiodsp_probe(void )
     memset((void*)DSP_REG_OFFSET,0,REG_MEM_SIZE);
 #ifndef CONFIG_MESON_TRUSTZONE
 #if ((MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6)||(MESON_CPU_TYPE == MESON_CPU_TYPE_MESON6TV))
-    dsp_get_debug_interface(0);
+    dsp_get_debug_interface();
 #elif MESON_CPU_TYPE == MESON_CPU_TYPE_MESON8
 	// to do
 #endif

@@ -34,6 +34,12 @@ struct arm_delay_ops arm_delay_ops = {
 	.udelay		= __loop_udelay,
 };
 
+void __const_udelay(unsigned long xloops)
+{
+    return __loop_const_udelay(xloops);
+}
+EXPORT_SYMBOL(__const_udelay);
+
 static const struct delay_timer *delay_timer;
 static bool delay_calibrated;
 
