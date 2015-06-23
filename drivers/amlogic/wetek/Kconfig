@@ -1,0 +1,14 @@
+#
+# WetekPlay driver configuration
+#
+
+menu "WetekPlay driver"
+
+config WETEK
+	tristate "WetekPlay driver"
+	default n
+	select DVB_CORE
+	help
+		Select to enable WetekPlay driver.
+endmenu
+

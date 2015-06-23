@@ -162,11 +162,48 @@ static struct platform_driver wifi_plat_driver = {
         .of_match_table = wifi_match
     },
 };
+struct pinctrl      	*bt_pinctrl = NULL;
+
+static int bt_probe(struct platform_device *pdev)
+{
+#ifdef CONFIG_OF
+	if (pdev->dev.of_node) {
+		bt_pinctrl = devm_pinctrl_get_select_default(&pdev->dev);
+	}
+#endif
+	return 0;
+}
+static int bt_remove(struct platform_device *pdev)
+{
+	if (bt_pinctrl)
+		devm_pinctrl_put(bt_pinctrl);
+
+	return 0;
+}
+#ifdef CONFIG_OF
+static const struct of_device_id bt_dev_dt_match[]={
+	{	.compatible = "amlogic,bt-dev",
+	},
+	{},
+};
+#else
+#define bt_dev_dt_match NULL
+#endif
+
+static struct platform_driver bt_driver = {
+	.driver		= {
+		.name	= "bt-dev",
+		.of_match_table = bt_dev_dt_match,
+	},
+	.probe		= bt_probe,
+	.remove		= bt_remove,
+};
 
 static int __init wifi_dt_init(void)
 {
 	int ret;
 	ret = platform_driver_register(&wifi_plat_driver);
+	ret = platform_driver_register(&bt_driver);
 	return ret;
 }
 // module_init(wifi_dt_init);
@@ -175,6 +212,7 @@ fs_initcall_sync(wifi_dt_init);
 static void __exit wifi_dt_exit(void)
 {
 	platform_driver_unregister(&wifi_plat_driver);
+	platform_driver_unregister(&bt_driver);
 }
 module_exit(wifi_dt_exit);
 
@@ -247,6 +285,27 @@ int wifi_setup_dt()
 		SHOW_PIN_OWN("power_on_pin2", wifi_info.power_on_pin2);
 	}
 
+	if (bt_pinctrl) {
+	
+		printk("bt_setup\n");
+		ret = amlogic_gpio_request(GPIOX_10, OWNER_NAME);
+		CHECK_RET(ret);
+		ret = amlogic_gpio_direction_output(GPIOX_10, 1, OWNER_NAME);
+		CHECK_RET(ret);
+		msleep(50);
+		
+		
+		ret = amlogic_gpio_request(GPIOE_11, OWNER_NAME);
+		CHECK_RET(ret);
+		ret = amlogic_gpio_direction_output(GPIOE_11, 0, OWNER_NAME);
+		CHECK_RET(ret);
+		msleep(20);
+				
+		ret = amlogic_gpio_direction_output(GPIOE_11, 1, OWNER_NAME);
+		CHECK_RET(ret);
+		msleep(50);
+	
+	}
 	return 0;
 }
 EXPORT_SYMBOL(wifi_setup_dt);

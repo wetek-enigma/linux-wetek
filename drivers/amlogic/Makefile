@@ -84,6 +84,7 @@ obj-$(CONFIG_AMAUDIO2) += amaudio2/
 obj-y += mhl/
 obj-y += hdmi/
 
+obj-$(CONFIG_WETEK) += wetek/
 obj-$(CONFIG_AM_DVB) += dvb_tv/
 obj-$(CONFIG_AM_SMARTCARD) += smartcard/
 
