@@ -38,7 +38,7 @@
 
 void osddev_set(struct myfb_dev *fbdev)
 {
-
+	
     fbdev_lock(fbdev);
 
     //memset((char*) fbdev->fb_mem,0x0,fbdev->fb_len);
@@ -56,25 +56,30 @@ void osddev_set(struct myfb_dev *fbdev)
                fbdev->osd_ctl.disp_end_y,
                fbdev->fb_mem_paddr,
                fbdev->color,
-               fbdev->fb_info->node);
+               fbdev->fb_info->node);	
 
 
 
     fbdev_unlock(fbdev);
-
+    	
     return;
 }
+EXPORT_SYMBOL(osddev_set);
+
 void osddev_update_disp_axis(struct myfb_dev *fbdev,int  mode_change)
 {
 	osddev_update_disp_axis_hw(	fbdev->osd_ctl.disp_start_x,
 								fbdev->osd_ctl.disp_end_x,
-							fbdev->osd_ctl.disp_start_y,
-							fbdev->osd_ctl.disp_end_y,
-							fbdev->fb_info->var.xoffset,
-							fbdev->fb_info->var.yoffset,
-							mode_change,
-							fbdev->fb_info->node);
+               						fbdev->osd_ctl.disp_start_y,
+               						fbdev->osd_ctl.disp_end_y,
+               						fbdev->fb_info->var.xoffset,
+               						fbdev->fb_info->var.yoffset,
+               						mode_change,
+               						fbdev->fb_info->node);
 }
+EXPORT_SYMBOL(osddev_update_disp_axis);
+
+
 int osddev_setcolreg(unsigned regno, u16 red, u16 green, u16 blue,
         u16 transp, struct myfb_dev *fbdev)
 {
@@ -96,7 +101,7 @@ int osddev_setcolreg(unsigned regno, u16 red, u16 green, u16 blue,
 
 		if (regno >= 16)
 			return 1;
-
+	 
         r = red    >> (16 - info->var.red.length);
         g = green  >> (16 - info->var.green.length);
         b = blue   >> (16 - info->var.blue.length);
@@ -107,239 +112,342 @@ int osddev_setcolreg(unsigned regno, u16 red, u16 green, u16 blue,
 		    (b << info->var.blue.offset)  |
 		    (a << info->var.transp.offset);
 
-		((u32*)(info->pseudo_palette))[regno] = v;
+  		((u32*)(info->pseudo_palette))[regno] = v;
 	}
 
     return 0;
 }
+EXPORT_SYMBOL(osddev_setcolreg);
+
+
+
 void osddev_init(void)
 {
 	osd_init_hw(0);
 }
+EXPORT_SYMBOL(osddev_init);
+
+
+
 u32	osddev_get_osd_order(u32 index)
 {
 	return osd_get_osd_order_hw(index);
 }
+EXPORT_SYMBOL(osddev_get_osd_order);
+
+
 void osddev_change_osd_order(u32 index,u32 order)
 {
 	osd_change_osd_order_hw(index,order);
 }
+EXPORT_SYMBOL(osddev_change_osd_order);
+
+
 void osddev_free_scale_enable(u32 index ,u32 enable)
 {
 	//at present we only support osd1 & osd2 have the same random scale mode.
 	osd_free_scale_enable_hw(index,enable);
-
+	
 }
+EXPORT_SYMBOL(osddev_free_scale_enable);
+
+
 
 void osddev_get_free_scale_enable(u32 index, u32 *free_scale_enable)
 {
 	osd_get_free_scale_enable_hw(index, free_scale_enable);
 }
+EXPORT_SYMBOL(osddev_get_free_scale_enable);
+
 
 void osddev_4k2k_fb_mode(u32 fb_for_4k2k)
 {
 	osd_4k2k_fb_mode_hw(fb_for_4k2k);
 }
+EXPORT_SYMBOL(osddev_4k2k_fb_mode);
+
 
 void osddev_free_scale_mode(u32 index ,u32 freescale_mode)
 {
 	osd_free_scale_mode_hw(index, freescale_mode);
 
 }
+EXPORT_SYMBOL(osddev_free_scale_mode);
+
 
 void osddev_get_free_scale_mode(u32 index, u32 *freescale_mode)
 {
 	osd_get_free_scale_mode_hw(index, freescale_mode);
 }
+EXPORT_SYMBOL(osddev_get_free_scale_mode);
+
+
 
 void osddev_free_scale_width(u32 index ,u32 width)
 {
 	//at present we only support osd1 & osd2 have the same random scale mode.
 	osd_free_scale_width_hw(index,width);
-
+	
 }
+EXPORT_SYMBOL(osddev_free_scale_width);
+
 
 void osddev_get_free_scale_width(u32 index, u32 *free_scale_width)
 {
 	osd_get_free_scale_width_hw(index, free_scale_width);
 }
+EXPORT_SYMBOL(osddev_get_free_scale_width);
+
 
 void osddev_free_scale_height(u32 index ,u32 height)
 {
 	//at present we only support osd1 & osd2 have the same random scale mode.
 	osd_free_scale_height_hw(index,height);
-
+	
 }
+EXPORT_SYMBOL(osddev_free_scale_height);
+
 
 void osddev_get_free_scale_height(u32 index, u32 *free_scale_height)
 {
 	osd_get_free_scale_height_hw(index, free_scale_height);
 }
+EXPORT_SYMBOL(osddev_get_free_scale_height);
 
 void osddev_get_free_scale_axis(u32 index, s32 *x0, s32 *y0, s32 *x1, s32 *y1)
 {
 	//at present we only support osd1 & osd2 have the same random scale mode.
 	osd_get_free_scale_axis_hw(index, x0, y0, x1, y1);
-
 }
+EXPORT_SYMBOL(osddev_get_free_scale_axis);
+
 
 void osddev_set_free_scale_axis(u32 index, s32 x0, s32 y0, s32 x1, s32 y1)
 {
 	//at present we only support osd1 & osd2 have the same random scale mode.
 	osd_set_free_scale_axis_hw(index, x0, y0, x1, y1);
 }
+EXPORT_SYMBOL(osddev_set_free_scale_axis);
+
 
 void osddev_enable_3d_mode(u32 index ,u32 enable)
 {
 	osd_enable_3d_mode_hw(index,enable);
 }
+EXPORT_SYMBOL(osddev_enable_3d_mode);
+
+
 
 void osddev_set_scale_axis(u32 index, s32 x0, s32 y0, s32 x1, s32 y1)
 {
 	osd_set_scale_axis_hw(index, x0, y0, x1, y1);
 }
+EXPORT_SYMBOL(osddev_set_scale_axis);
+
 
 void osddev_get_scale_axis(u32 index, s32 *x0, s32 *y0, s32 *x1, s32 *y1)
 {
 	osd_get_scale_axis_hw(index, x0, y0, x1, y1);
 }
+EXPORT_SYMBOL(osddev_get_scale_axis);
+
 
 void osddev_get_window_axis(u32 index, s32 *x0, s32 *y0, s32 *x1, s32 *y1)
 {
 	osd_get_window_axis_hw(index, x0, y0, x1, y1);
 }
+EXPORT_SYMBOL(osddev_get_window_axis);
+
 
 void osddev_set_window_axis(u32 index, s32 x0, s32 y0, s32 x1, s32 y1)
 {
 	osd_set_window_axis_hw(index, x0, y0, x1, y1);
 }
+EXPORT_SYMBOL(osddev_set_window_axis);
+
 int osddev_sync_request( struct fb_info * info,u32 xoffset, u32 yoffset,s32 in_fence_fd)
 {
 	return osd_sync_request(info->node, info->var.yres,xoffset ,yoffset ,in_fence_fd);
 }
+EXPORT_SYMBOL(osddev_sync_request);
+
+
 int osddev_wait_for_vsync(void)
 {
 	return osd_wait_vsync_event();
 }
+EXPORT_SYMBOL(osddev_wait_for_vsync);
+
+
+
 void osddev_get_osd_info(u32 index, s32 (*posdval)[4], u32 (*posdreg)[5], s32 info_flag)
 {
 	osd_get_osd_info_hw(index, posdval, posdreg, info_flag);
 }
+EXPORT_SYMBOL(osddev_get_osd_info);
+
 
 void osddev_set_2x_scale(u32 index,u16 h_scale_enable,u16 v_scale_enable)
 {
 	osd_set_2x_scale_hw(index,h_scale_enable,v_scale_enable);
 }
+EXPORT_SYMBOL(osddev_set_2x_scale);
+
 
 void osddev_get_flush_rate(u32 *flush_rate)
 {
 	osd_get_flush_rate(flush_rate);
 }
+EXPORT_SYMBOL(osddev_get_flush_rate);
+
 
 void osddev_get_osd_reverse(u32 index, u32 *reverse)
 {
 	osd_get_osd_reverse_hw(index, reverse);
 }
+EXPORT_SYMBOL(osddev_get_osd_reverse);
+
 
 void osddev_set_osd_reverse(u32 index, u32 reverse)
 {
 	osd_set_osd_reverse_hw(index, reverse);
 }
+EXPORT_SYMBOL(osddev_set_osd_reverse);
+
+
 
 void osddev_get_osd_rotate_on(u32 index, u32 *on_off)
 {
         osd_get_osd_rotate_on_hw(index, on_off);
 }
+EXPORT_SYMBOL(osddev_get_osd_rotate_on);
+
 
 void osddev_set_osd_rotate_on(u32 index, u32 on_off)
 {
         osd_set_osd_rotate_on_hw(index, on_off);
 }
+EXPORT_SYMBOL(osddev_set_osd_rotate_on);
+
 
 void osddev_get_osd_antiflicker(u32 index, u32 *on_off)
 {
         osd_get_osd_antiflicker_hw(index, on_off);
 }
+EXPORT_SYMBOL(osddev_get_osd_antiflicker);
+
 
 void osddev_set_osd_antiflicker(u32 index, u32 vmode, u32 yres)
 {
         osd_set_osd_antiflicker_hw(index, vmode, yres);
 }
+EXPORT_SYMBOL(osddev_set_osd_antiflicker);
+
 
 void osddev_get_osd_angle(u32 index, u32 *angle)
 {
         osd_get_osd_angle_hw(index, angle);
 }
+EXPORT_SYMBOL(osddev_get_osd_angle);
+
 
 void osddev_set_osd_angle(u32 index, u32 angle, u32  virtual_osd1_yres, u32 virtual_osd2_yres)
 {
         osd_set_osd_angle_hw(index, angle, virtual_osd1_yres, virtual_osd2_yres);
 }
+EXPORT_SYMBOL(osddev_set_osd_angle);
+
 
 void osddev_get_osd_clone(u32 index, u32 *clone)
 {
         osd_get_osd_clone_hw(index, clone);
 }
+EXPORT_SYMBOL(osddev_get_osd_clone);
+
 
 void osddev_set_osd_clone(u32 index, u32 clone)
 {
         osd_set_osd_clone_hw(index, clone);
 }
+EXPORT_SYMBOL(osddev_set_osd_clone);
+
 
 void osddev_set_osd_update_pan(u32 index)
 {
         osd_set_osd_update_pan_hw(index);
 }
+EXPORT_SYMBOL(osddev_set_osd_update_pan);
+
 
 void osddev_get_osd_rotate_angle(u32 index, u32 *angle)
 {
         osd_get_osd_rotate_angle_hw(index, angle);
 }
+EXPORT_SYMBOL(osddev_get_osd_rotate_angle);
+
 
 void osddev_set_osd_rotate_angle(u32 index, u32 angle)
 {
         osd_set_osd_rotate_angle_hw(index, angle);
 }
+EXPORT_SYMBOL(osddev_set_osd_rotate_angle);
+
 
 void osddev_get_prot_canvas(u32 index, s32 *x_start, s32 *y_start, s32 *x_end, s32 *y_end)
 {
 	osd_get_prot_canvas_hw(index, x_start, y_start, x_end, y_end);
 }
+EXPORT_SYMBOL(osddev_get_prot_canvas);
+
 
 void osddev_set_prot_canvas(u32 index, s32 x_start, s32 y_start, s32 x_end, s32 y_end)
 {
 	osd_set_prot_canvas_hw(index, x_start, y_start, x_end, y_end);
 }
+EXPORT_SYMBOL(osddev_set_prot_canvas);
+
+
 
 void osddev_set_block_windows(u32 index, u32 *block_windows)
 {
 	osd_set_block_windows_hw(index, block_windows);
 }
+EXPORT_SYMBOL(osddev_set_block_windows);
+
 
 void osddev_get_block_windows(u32 index, u32 *block_windows)
 {
 	osd_get_block_windows_hw(index, block_windows);
 }
+EXPORT_SYMBOL(osddev_get_block_windows);
+
 
 void osddev_set_block_mode(u32 index, u32 mode)
 {
 	osd_set_block_mode_hw(index, mode);
 }
+EXPORT_SYMBOL(osddev_set_block_mode);
+
 
 void osddev_get_block_mode(u32 index, u32 *mode)
 {
 	osd_get_block_mode_hw(index, mode);
 }
+EXPORT_SYMBOL(osddev_get_block_mode);
 
 void osddev_enable(int enable,int  index)
 {
     osd_enable_hw(enable,index);
 }
+EXPORT_SYMBOL(osddev_enable);
+
 
 void osddev_pan_display(struct fb_var_screeninfo *var,struct fb_info *fbi)
 {
     osd_pan_display_hw(var->xoffset, var->yoffset,fbi->node);
 }
+EXPORT_SYMBOL(osddev_pan_display);
+
 
 #if defined(CONFIG_FB_OSD2_CURSOR)
 void osddev_cursor(struct myfb_dev *fbdev, s16 x, s16 y, s16 xstart, s16 ystart, u32 osd_w, u32 osd_h)
@@ -348,6 +456,7 @@ void osddev_cursor(struct myfb_dev *fbdev, s16 x, s16 y, s16 xstart, s16 ystart,
     osd_cursor_hw(x, y, xstart, ystart, osd_w, osd_h, fbdev->fb_info->node);
     fbdev_unlock(fbdev);
 }
+EXPORT_SYMBOL(osddev_cursor);
 #endif
 
 int osddev_copy_data_tocursor(myfb_dev_t *g_fbi, aml_hwc_addr_t *cursor_mem)
@@ -358,28 +467,48 @@ int osddev_copy_data_tocursor(myfb_dev_t *g_fbi, aml_hwc_addr_t *cursor_mem)
 	osddev_copy_data_tocursor_hw((u32)g_fbi->fb_mem_vaddr, cursor_mem);
 	return 1;
 }
+EXPORT_SYMBOL(osddev_copy_data_tocursor);
+
 
 void  osddev_set_colorkey(u32 index,u32 bpp,u32 colorkey )
 {
 	osd_set_colorkey_hw( index, bpp, colorkey );
 }
+EXPORT_SYMBOL(osddev_set_colorkey);
+
+
 void  osddev_srckey_enable(u32  index,u8 enable)
 {
 	osd_srckey_enable_hw(index,enable);
 }
+EXPORT_SYMBOL(osddev_srckey_enable);
+
+
 void  osddev_set_gbl_alpha(u32 index,u32 gbl_alpha)
 {
 	osd_set_gbl_alpha_hw(index,gbl_alpha);
 }
+EXPORT_SYMBOL(osddev_set_gbl_alpha);
+
+
 u32  osddev_get_gbl_alpha(u32  index)
 {
 	return osd_get_gbl_alpha_hw(index);
 }
+EXPORT_SYMBOL(osddev_get_gbl_alpha);
+
+
 void  osddev_suspend(void)
 {
 	osd_suspend_hw();
 }
+EXPORT_SYMBOL(osddev_suspend);
+
+
 void osddev_resume(void)
 {
 	osd_resume_hw();
 }
+EXPORT_SYMBOL(osddev_resume);
+
+
