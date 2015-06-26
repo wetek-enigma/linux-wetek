@@ -143,10 +143,11 @@ int dhd_conf_preinit(dhd_pub_t *dhd);
 int dhd_conf_attach(dhd_pub_t *dhd);
 void dhd_conf_detach(dhd_pub_t *dhd);
 
+extern int g_wifi_on;
 #ifdef POWER_OFF_IN_SUSPEND
 extern struct net_device *g_netdev;
 #if defined(CONFIG_HAS_EARLYSUSPEND)
-extern int g_wifi_on;
+//extern int g_wifi_on;
 #ifdef WL_CFG80211
 void wl_cfg80211_stop(void);
 void wl_cfg80211_send_disconnect(void);
