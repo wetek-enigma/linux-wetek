@@ -521,7 +521,7 @@ int rtc_set_alarm_aml(struct device *dev, alarm_data_t *alarm_data) {
 
 	return 0;
 }
-
+EXPORT_SYMBOL(rtc_set_alarm_aml);
 /*************************************************************************/
 
 
