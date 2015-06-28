@@ -21,7 +21,7 @@ void root_func(){
 	#address-cells = <1>;
 	#size-cells = <1>;
        chosen {
-           bootargs = "root=/dev/mmcblk0p2 rw rootfstype=ext4 disk=/dev/mmcblk0p2 BOOT_IMAGE=kernel.img console=tty0 consoleblank=0 scaling_governor=hotplug scaling_min_freq=200000 scaling_max_freq=1512000 systemd.show_status=auto rootwait";
+           bootargs = "root=/dev/mmcblk0p2 rw rootfstype=ext4 disk=/dev/mmcblk0p2 BOOT_IMAGE=kernel.img no_console_suspend=1 console=tty0 consoleblank=0 scaling_governor=hotplug scaling_min_freq=200000 scaling_max_freq=1512000 systemd.show_status=auto rootwait";
        };
 
 /// ***************************************************************************************
