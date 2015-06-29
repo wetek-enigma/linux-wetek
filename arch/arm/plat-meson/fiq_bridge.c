@@ -27,6 +27,8 @@ int  fiq_bridge_pulse_trigger(bridge_item_t *c_item)
     BRIDGE_IRQ_SET();
     return 0;
 }
+EXPORT_SYMBOL(fiq_bridge_pulse_trigger);
+
 int  register_fiq_bridge_handle(bridge_item_t *c_item)
 {
     bridge_item_t  *pitem;
@@ -55,6 +57,8 @@ int  register_fiq_bridge_handle(bridge_item_t *c_item)
 
     return 0;
 }
+EXPORT_SYMBOL(register_fiq_bridge_handle);
+
 int  unregister_fiq_bridge_handle(bridge_item_t *c_item)
 {
     bridge_item_t  *pitem, *tmp;
@@ -75,3 +79,5 @@ int  unregister_fiq_bridge_handle(bridge_item_t *c_item)
     }
     return 0;
 }
+EXPORT_SYMBOL(unregister_fiq_bridge_handle);
+
