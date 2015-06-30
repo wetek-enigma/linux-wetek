@@ -800,7 +800,7 @@ int ge2d_context_config_ex(ge2d_context_t *context, config_para_ex_t *ge2d_confi
 	//context->config.src2_dst_data.ddr_burst_size= 3;
 	return  0;
 }
-
+EXPORT_SYMBOL(ge2d_context_config_ex);
 /***********************************************************************
 ** interface for init  create & destroy work_queue
 ************************************************************************/
@@ -842,6 +842,7 @@ ge2d_context_t* create_ge2d_work_queue(void)
 	spin_unlock(&ge2d_manager.event.sem_lock);
 	return ge2d_work_queue; //find it
 }
+EXPORT_SYMBOL(create_ge2d_work_queue);
 int  destroy_ge2d_work_queue(ge2d_context_t* ge2d_work_queue)
 {
 	ge2d_queue_item_t    	*pitem,*tmp;
@@ -894,6 +895,7 @@ int  destroy_ge2d_work_queue(ge2d_context_t* ge2d_work_queue)
 
 	return  -1;
 }
+EXPORT_SYMBOL(destroy_ge2d_work_queue);
 /***********************************************************************
 ** interface for init and deinit section
 ************************************************************************/
