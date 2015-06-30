@@ -21,7 +21,7 @@ void root_func(){
 	#address-cells = <1>;
 	#size-cells = <1>;
        chosen {
-           bootargs = "root=/dev/mmcblk0p2 rw rootfstype=ext4 disk=/dev/mmcblk0p2 BOOT_IMAGE=kernel.img no_console_suspend=1 console=tty0 consoleblank=0 scaling_governor=hotplug scaling_min_freq=200000 scaling_max_freq=1512000 systemd.show_status=auto rootwait";
+           bootargs = "vmalloc=300M root=/dev/mmcblk0p2 rw rootfstype=ext4 disk=/dev/mmcblk0p2 BOOT_IMAGE=kernel.img no_console_suspend=1 console=tty0 consoleblank=0 scaling_governor=hotplug scaling_min_freq=200000 scaling_max_freq=1512000 systemd.show_status=auto rootwait";
        };
 
 /// ***************************************************************************************
@@ -119,6 +119,14 @@ void root_func(){
 	  vmode = <0>; /*0:VMODE_720P 1:VMODE_LCD  2:VMODE_LVDS_1080P 3:VMODE_1080P*/
 	  scale_mode = <0>; /*0:default 1:new*/
 	  display_size_default = <1280 720 1280 2160 32>;  // osd0:8M, osd1:1m  1280*720*4*3 = 11,059,200
+	};
+
+	wetekfb{
+		compatible = "amlogic,wetekfb";
+		dev_name = "wetekfb.0";
+		status = "okay";
+		reserve-memory = <0x01800000>;
+		reserve-iomap = "true";
 	};
 //$$ DEVICE="deinterlace"
 //$$ L2 PROP_STR = "status"
