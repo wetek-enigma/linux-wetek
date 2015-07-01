@@ -22,6 +22,9 @@
 
 #include <linux/amlogic/aml_gpio_consumer.h>
 #include <linux/usb.h>
+#include <linux/of.h>
+#include <linux/of_fdt.h>
+
 #include "nimdetect.h"
 
 #include "cxd2837.h"
@@ -34,7 +37,8 @@
 #define TOTAL_DEMODS 		2
 #define TOTAL_AML_INPUTS 	3
 
-
+struct resource fbmem;
+EXPORT_SYMBOL(fbmem);
 static struct wetek_nims weteknims;
 
 static struct cxd2837_cfg cxd2837cfg = {
@@ -347,6 +351,27 @@ static int wetekcard_remove(struct platform_device *pdev)
 		devm_pinctrl_put(weteknims.card_pinctrl);
 	return 0;
 }
+static int wetekfb_probe(struct platform_device *pdev)
+{
+	int ret;
+	
+	memset(&fbmem, 0, sizeof(fbmem));
+	ret = find_reserve_block(pdev->dev.of_node->name, 0);
+	if	(ret < 0)
+		dev_info(&pdev->dev,"Can not find %s0 reserve block\n", pdev->dev.of_node->name);
+	else {
+		fbmem.start = (phys_addr_t)get_reserve_block_addr(ret);
+		fbmem.end = fbmem.start + (phys_addr_t)get_reserve_block_size(ret) - 1;
+	}
+	return 0;
+}
+static int wetekfb_remove(struct platform_device *pdev)
+{
+	return 0;
+}
+
+
+
 static const struct of_device_id nim_dvb_dt_match[] = {
 	{
 		.compatible = "amlogic,dvb",
@@ -379,6 +404,24 @@ static struct platform_driver wetekcard_driver = {
 	}
 };
 
+
+static const struct of_device_id wetekfb_dt_match[]={
+	{	.compatible = "amlogic,wetekfb",
+	},
+	{},
+};
+
+static struct platform_driver wetekfb_driver = {
+	.probe		= wetekfb_probe,
+    .remove		= wetekfb_remove,
+	.driver		= {
+		.name	= "wetekfb",
+		.owner	= THIS_MODULE,
+		.of_match_table = wetekfb_dt_match,
+	}
+};
+
+
 int __init nim_dvb_init(void)
 {
 	int ret;
@@ -387,7 +430,9 @@ int __init nim_dvb_init(void)
 	
 	ret = platform_driver_register(&nim_dvb_detection);
 	if (!ret)
-		return platform_driver_register(&wetekcard_driver);
+		ret = platform_driver_register(&wetekcard_driver);
+		if (!ret)
+			return platform_driver_register(&wetekfb_driver);
 		
 	return ret;
 }
@@ -395,6 +440,7 @@ void __exit nim_dvb_exit(void)
 {
 	platform_driver_unregister(&nim_dvb_detection);
 	platform_driver_unregister(&wetekcard_driver);
+	platform_driver_unregister(&wetekfb_driver);
 }
 
 module_init(nim_dvb_init);
