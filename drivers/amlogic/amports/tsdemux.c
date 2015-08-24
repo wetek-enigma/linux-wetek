@@ -55,7 +55,7 @@ static u32 curr_aud_id = 0xffff;
 static u32 curr_sub_id = 0xffff;
 static u32 curr_pcr_id = 0xffff;
 u32 pcr_pid = 0;
-u32 stb_source = 0;
+int stb_source = -1;
 
 static DECLARE_WAIT_QUEUE_HEAD(wq);
 static u32 fetch_done;
@@ -71,6 +71,11 @@ static irq_handler_t       demux_handler;
 static void               *demux_data;
 static DEFINE_SPINLOCK(demux_ops_lock);
 
+void set_stb_source(int val)
+{
+	stb_source = val;	
+}
+EXPORT_SYMBOL(set_stb_source);
 void tsdemux_set_ops(struct tsdemux_ops *ops)
 {
     unsigned long flags;
@@ -328,7 +333,7 @@ static irqreturn_t tsdemux_isr(int irq, void *dev_id)
     u32 int_status = READ_MPEG_REG(STB_INT_STATUS);
 #else
     int id = (int)dev_id;
-    u32 int_status = id ? READ_MPEG_REG(STB_INT_STATUS_2) : READ_MPEG_REG(STB_INT_STATUS);
+    u32 int_status = ((id) ? ((id == 1) ? READ_MPEG_REG(STB_INT_STATUS_2) : READ_MPEG_REG(STB_INT_STATUS_3)) : READ_MPEG_REG(STB_INT_STATUS));
 #endif
 
     if (int_status & (1 << NEW_PDTS_READY)) {
@@ -506,6 +511,8 @@ s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc)
     WRITE_MPEG_REG(DEMUX_CONTROL, 0);
 #endif
 
+	WRITE_MPEG_REG(DEMUX_CONTROL_3, 0);
+
     /* set PID filter */
     printk("tsdemux video_pid = 0x%x, audio_pid = 0x%x, sub_pid = 0x%x, pcrid = 0x%x\n",
            vid, aid, sid, pcr_pid);
@@ -553,6 +560,51 @@ s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc)
     WRITE_MPEG_REG(DEMUX_CONTROL, (1 << STB_DEMUX_ENABLE) | (1 << KEEP_DUPLICATE_PACKAGE));
 #endif
 
+
+	if (stb_source == 2) {
+		WRITE_MPEG_REG(FM_WR_DATA_3,
+                   (((vid & 0x1fff) | (VIDEO_PACKET << 13)) << 16) |
+                   ((aid & 0x1fff) | (AUDIO_PACKET << 13)));
+		WRITE_MPEG_REG(FM_WR_ADDR_3, 0x8000);
+		while (READ_MPEG_REG(FM_WR_ADDR_3) & 0x8000) {
+			;
+		}
+
+		WRITE_MPEG_REG(FM_WR_DATA_3,
+					   (((sid & 0x1fff) | (SUB_PACKET << 13)) << 16) | 0xffff);
+		WRITE_MPEG_REG(FM_WR_ADDR_3, 0x8001);
+		while (READ_MPEG_REG(FM_WR_ADDR_3) & 0x8000) {
+			;
+		}
+
+		WRITE_MPEG_REG(MAX_FM_COMP_ADDR_3, 1);
+
+		WRITE_MPEG_REG(STB_INT_MASK_3, 0);
+		WRITE_MPEG_REG(STB_INT_STATUS_3, 0xffff);
+
+		/* TS data path */
+		WRITE_MPEG_REG(FEC_INPUT_CONTROL_3, 0x7000);
+		WRITE_MPEG_REG(DEMUX_MEM_REQ_EN_3,
+					   (1 << VIDEO_PACKET) |
+					   (1 << AUDIO_PACKET) |
+					   (1 << SCR_ONLY_PACKET) |
+					   (1 << SUB_PACKET));
+		WRITE_MPEG_REG(DEMUX_ENDIAN_3,
+					   (7 << OTHER_ENDIAN)  |
+					   (7 << BYPASS_ENDIAN) |
+					   (0 << SECTION_ENDIAN));
+		WRITE_MPEG_REG(TS_HIU_CTL_3, 1 << USE_HI_BSF_INTERFACE);
+		WRITE_MPEG_REG(TS_FILE_CONFIG,
+					   (demux_skipbyte << 16)                  |
+					   (6 << DES_OUT_DLY)                      |
+					   (3 << TRANSPORT_SCRAMBLING_CONTROL_ODD) |
+					   (1 << TS_HIU_ENABLE)                    |
+					   (4 << FEC_FILE_CLK_DIV));
+
+		/* enable TS demux */
+		WRITE_MPEG_REG(DEMUX_CONTROL_3, (1 << STB_DEMUX_ENABLE) | (1 << KEEP_DUPLICATE_PACKAGE));
+	}
+	
     if (fetchbuf == 0) {
         printk("%s: no fetchbuf\n", __FUNCTION__);
         return -ENOMEM;
@@ -652,18 +704,32 @@ s32 tsdemux_init(u32 vid, u32 aid, u32 sid, u32 pcrid, bool is_hevc)
         goto err4;
     }
 #else
+
+	if (stb_source == 2) {
+		WRITE_MPEG_REG(STB_INT_MASK_3,
+                   (1 << SUB_PES_READY)
+                   | (1 << NEW_PDTS_READY)
+                   | (1 << DIS_CONTINUITY_PACKET));
+	}
     tsdemux_config();
     tsdemux_request_irq(tsdemux_isr, (void *)tsdemux_irq_id);
+	
+	
+	printk("tsdemux stb_source %d\n", stb_source);
+	
     if (vid < 0x1FFF) {
 		curr_vid_id = vid;
+		if (stb_source != 2) 
         tsdemux_set_vid(vid);
     }
     if (aid < 0x1FFF) {
 		curr_aud_id = aid;
+		if (stb_source != 2) 
         tsdemux_set_aid(aid);
     }
     if (sid < 0x1FFF) {
 		curr_sub_id = sid;
+		if (stb_source != 2) 
         tsdemux_set_sid(sid);
     }
 
@@ -712,12 +778,16 @@ void tsdemux_release(void)
     free_irq(INT_DEMUX, (void *)tsdemux_irq_id);
 #else
 
+	if (stb_source != 2) 
     tsdemux_set_aid(0xffff);
+	if (stb_source != 2) 
     tsdemux_set_vid(0xffff);
+	if (stb_source != 2) 
     tsdemux_set_sid(0xffff);
+	
     tsdemux_set_pcrid(0xffff);
     tsdemux_free_irq();
-
+	stb_source = -1;
 	curr_vid_id  = 0xffff;
 	curr_aud_id  = 0xffff;
 	curr_sub_id  = 0xffff;
@@ -833,8 +903,10 @@ static ssize_t store_stbsource(struct class *class, struct class_attribute *attr
 {
     ssize_t ret;
 	
-    ret = sscanf(buf, "%u", &stb_source); 
-	tsdemux_set_demux(stb_source);
+	if (stb_source == -1) {
+		ret = sscanf(buf, "%u", &stb_source); 
+		tsdemux_set_demux(stb_source);
+	}
     return size;
 }
 static ssize_t show_stbsource(struct class *class, struct class_attribute *attr, char *buf)
@@ -885,7 +957,9 @@ void tsdemux_change_avid(unsigned int vid, unsigned int aid)
 	curr_vid_id = vid;
 	curr_aud_id = aid;
 
+	if (stb_source != 2) 
     tsdemux_set_vid(vid);
+	if (stb_source != 2) 
     tsdemux_set_aid(aid);
 
 	reset_pcr_regs();
