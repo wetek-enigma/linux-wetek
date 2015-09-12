@@ -954,13 +954,21 @@ void tsdemux_change_avid(unsigned int vid, unsigned int aid)
         ;
     }
 #else
-	curr_vid_id = vid;
 	curr_aud_id = aid;
 
 	if (stb_source != 2) 
-    tsdemux_set_vid(vid);
-	if (stb_source != 2) 
-    tsdemux_set_aid(aid);
+		tsdemux_set_aid(aid);
+	else if (stb_source == 2) {
+	    u32 data = READ_MPEG_REG(FM_WR_DATA_3);
+        WRITE_MPEG_REG(FM_WR_DATA_3,
+                       ((aid & 0x1fff) | (AUDIO_PACKET << 13)) |
+                       (data & 0xffff0000));
+        WRITE_MPEG_REG(FM_WR_ADDR_3, 0x8000);
+        while (READ_MPEG_REG(FM_WR_ADDR_3) & 0x8000) {
+            ;
+        }
+        WRITE_MPEG_REG(MAX_FM_COMP_ADDR_3, 1);
+	}
 
 	reset_pcr_regs();
 #endif
