@@ -497,7 +497,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
     u32 t;
 
     if(tsync_mode == TSYNC_MODE_PCRMASTER){
-	amlog_level(LOG_LEVEL_INFO,"[tsync_avevent_locked]PCR MASTER to use tsync pcr cmd deal ");
+	printk("[tsync_avevent_locked]PCR MASTER to use tsync pcr cmd deal \n");
 	tsync_pcr_avevent_locked(event,param);
 	return;
     }
@@ -536,7 +536,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
 #endif
 
             tsync_stat = TSYNC_STAT_PCRSCR_SETUP_VIDEO;
-            amlog_level(LOG_LEVEL_INFO, "vpts to scr, apts = 0x%x, vpts = 0x%x\n",
+            printk( "vpts to scr, apts = 0x%x, vpts = 0x%x\n",
                         timestamp_apts_get(),
                         timestamp_vpts_get());
         }
@@ -605,7 +605,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
 	{
 		unsigned oldpts=timestamp_apts_get();
 		int oldmod=tsync_mode;
-		amlog_level(LOG_LEVEL_ATTENTION, "audio discontinue, reset apts, 0x%x\n", param);
+		printk( "audio discontinue, reset apts, 0x%x\n", param);
 				timestamp_apts_set(param);
 		if (!tsync_enable) {
 			timestamp_apts_set(param);
@@ -616,7 +616,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
                 else
                         t = timestamp_pcrscr_get();
 
-		amlog_level(LOG_LEVEL_ATTENTION, "AUDIO_TSTAMP_DISCONTINUITY, 0x%x, 0x%x\n", t, param);
+		printk( "AUDIO_TSTAMP_DISCONTINUITY, 0x%x, 0x%x\n", t, param);
 		if((abs(param-oldpts)>tsync_av_threshold_min) && (!get_vsync_pts_inc_mode())){
 			apts_discontinue=1;
 			apts_discontinue_diff = abs(param-t);
@@ -644,7 +644,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
 
         timestamp_apts_set(param);
 
-		amlog_level(LOG_LEVEL_INFO, "audio start, reset apts = 0x%x\n", param);
+		printk( "audio start, reset apts = 0x%x\n", param);
 
         timestamp_apts_enable(1);
 
@@ -656,7 +656,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
 
         t = timestamp_pcrscr_get();
 
-        amlog_level(LOG_LEVEL_INFO, "[%s]param %d, t %d, tsync_abreak %d\n",
+       printk( "[%s]param %d, t %d, tsync_abreak %d\n",
                     __FUNCTION__, param, t, tsync_abreak);
 
         if (tsync_abreak && (abs(param - t) > TIME_UNIT90K / 10)) { // 100ms, then wait to match
@@ -680,7 +680,7 @@ void tsync_avevent_locked(avevent_t event, u32 param)
 
         tsync_stat = TSYNC_STAT_PCRSCR_SETUP_AUDIO;
 
-        amlog_level(LOG_LEVEL_INFO, "apts reset scr = 0x%x\n", param);
+        printk( "apts reset scr = 0x%x\n", param);
 
         timestamp_pcrscr_enable(1);
         apause_flag = 0;
@@ -729,11 +729,11 @@ void tsync_avevent_locked(avevent_t event, u32 param)
         }
 		if(param == 1){
 		timestamp_pcrscr_enable(0);
-			amlog_level(LOG_LEVEL_INFO, "video pause!\n");
+			printk( "video pause!\n");
 		}else{
 		       if ((!apause_flag) || (!tsync_enable)) {
 			timestamp_pcrscr_enable(1);
-			amlog_level(LOG_LEVEL_INFO, "video resume\n");
+			printk( "video resume\n");
                       }
 		}
         break;
@@ -768,7 +768,7 @@ void tsync_avevent(avevent_t event, u32 param)
 {
     ulong flags;
     ulong fiq_flag;
-    amlog_level(LOG_LEVEL_INFO, "[%s]event:%d, param %d\n",
+    printk( "[%s]event:%d, param %d\n",
                 __FUNCTION__, event, param);
     spin_lock_irqsave(&lock, flags);
 
@@ -1608,7 +1608,7 @@ static int __init tsync_init(void)
     r = class_register(&tsync_class);
 
     if (r) {
-        amlog_level(LOG_LEVEL_ERROR, "tsync class create fail.\n");
+        printk( "tsync class create fail.\n");
         return r;
     }
 
